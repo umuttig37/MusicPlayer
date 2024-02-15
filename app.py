@@ -1,8 +1,26 @@
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+import os
+import threading
+import time
+import tkinter.messagebox
+from ttkthemes import themed_tk as tk
+from mutagen.mp3 import MP3
+from pygame import mixer
+class MelodyPlayer:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Melody")
+        self.root.iconbitmap(r'images/melody.ico')
+        self.root.get_themes()
+        self.root.set_theme("radiance")
 
+        self.playlist = []
+        self.paused = False
 
+        mixer.init()
+        self.create_widgets()
 def create_widgets(self):
     # Status Bar
     self.statusbar = ttk.Label(self.root, text="Welcome to MusicApp!", relief=SUNKEN, anchor=W, font='Times new roman')
@@ -71,3 +89,50 @@ def create_widgets(self):
     self.scale = ttk.Scale(self.bottomframe, from_=0, to=100, orient=HORIZONTAL, command=self.set_vol)
     self.scale.set(70)
     self.scale.grid(row=0, column=2, pady=15, padx=30)
+
+    def browse_file(self):
+        filename_path = filedialog.askopenfilename()
+        self.add_to_playlist(filename_path)
+        mixer.music.queue(filename_path)
+
+    def add_to_playlist(self, filename):
+        filename = os.path.basename(filename)
+        self.playlistbox.insert(0, filename)
+        self.playlist.insert(0, filename)
+
+    def del_song(self):
+        selected_song = self.playlistbox.curselection()
+        selected_song = int(selected_song[0])
+        self.playlistbox.delete(selected_song)
+        self.playlist.pop(selected_song)
+ def show_details(self, play_song):
+        file_data = os.path.splitext(play_song)
+        if file_data[1] == '.mp3':
+            audio = MP3(play_song)
+            total_length = audio.info.length
+        else:
+            a = mixer.Sound(play_song)
+            total_length = a.get_length()
+
+        mins, secs = divmod(total_length, 60)
+        mins = round(mins)
+        secs = round(secs)
+        timeformat = '{:02d}:{:02d}'.format(mins, secs)
+        self.lengthlabel['text'] = "Total Length" + ' - ' + timeformat
+
+        t1 = threading.Thread(target=self.start_count, args=(total_length,))
+        t1.start()
+
+    def start_count(self, t):
+        current_time = 0
+        while current_time <= t and mixer.music.get_busy():
+            if self.paused:
+                continue
+            else:
+                mins, secs = divmod(current_time, 60)
+                mins = round(mins)
+                secs = round(secs)
+                timeformat = '{:02d}:{:02d}'.format(mins, secs)
+                self.currenttimelabel['text'] = "Current Time" + ' - ' + timeformat
+                time.sleep(1)
+                current_time += 1
