@@ -8,7 +8,7 @@ import tkinter.messagebox
 from ttkthemes import themed_tk as tk
 from mutagen.mp3 import MP3
 from pygame import mixer
-class MelodyPlayer:
+class MusicPlayer:
     def __init__(self, root):
         self.root = root
         self.root.title("Melody")
@@ -136,3 +136,63 @@ def create_widgets(self):
                 self.currenttimelabel['text'] = "Current Time" + ' - ' + timeformat
                 time.sleep(1)
                 current_time += 1
+
+
+def play_music(self):
+    if self.paused:
+        mixer.music.unpause()
+        self.statusbar['text'] = "Music Resumed"
+        self.paused = False
+    else:
+        try:
+            self.stop_music()
+            time.sleep(1)
+            selected_song = self.playlistbox.curselection()
+            selected_song = int(selected_song[0])
+            play_it = self.playlist[selected_song]
+            mixer.music.load(play_it)
+            mixer.music.play()
+            self.statusbar['text'] = "Playing music" + ' - ' + os.path.basename(play_it)
+            self.show_details(play_it)
+        except:
+            tkinter.messagebox.showerror('File not found', 'MusicApp could not find the file. Please check again.')
+
+
+def stop_music(self):
+    mixer.music.stop()
+    self.statusbar['text'] = "Music Stopped"
+
+
+def pause_music(self):
+    self.paused = True
+    mixer.music.pause()
+    self.statusbar['text'] = "Music Paused"
+
+
+def rewind_music(self):
+    self.play_music()
+    self.statusbar['text'] = "Music Rewinded"
+
+
+def set_vol(self, val):
+    volume = float(val) / 100
+    mixer.music.set_volume(volume)
+
+
+def mute_music(self):
+    if not self.muted:
+        mixer.music.set_volume(0)
+        self.volumeBtn.configure(image=self.mutePhoto)
+        self.scale.set(0)
+        self.muted = True
+    else:
+        mixer.music.set_volume(0.7)
+        self.volumeBtn.configure(image=self.volumePhoto)
+        self.scale.set(70)
+        self.muted = False
+
+if __name__ == '__main__':
+    root = tk.ThemedTk()
+    music_player = MusicPlayer(root)
+    root.protocol("WM_DELETE_WINDOW", root.destroy)
+    root.mainloop()
